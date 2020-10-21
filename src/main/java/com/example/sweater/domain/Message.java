@@ -1,16 +1,23 @@
 package com.example.sweater.domain;
 
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.validator.constraints.Length;
+
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 
 @Entity
 public class Message {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator="native")
+    @GenericGenerator(name = "native", strategy = "native")
     private Long id;
 
+    @NotBlank(message = "Please fill the message") // поле не должно быть пустым, и подсказка (message = "подсказка")
+    @Length(max = 2048, message = "Message too long (more than 2048 symbols)") // При превышении 2048 символов в сообщении вылезет подсказка
     private String text;
+    @Length(max = 255, message = "Tag too long (more than 255 symbols)") // При превышении 2048 символов в сообщении вылезет подсказка
     private String tag;
-
     private String filename;
 
 
