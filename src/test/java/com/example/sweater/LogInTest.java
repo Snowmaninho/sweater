@@ -61,5 +61,4 @@ public class LogInTest {
                     .andDo(print())
                     .andExpect(status().isForbidden()); // 403 статус
     }
-
 }
