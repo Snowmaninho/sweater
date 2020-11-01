@@ -3,6 +3,7 @@ package com.example.sweater.controller;
 import com.example.sweater.domain.Message;
 import com.example.sweater.domain.User;
 import com.example.sweater.repos.MessageRepo;
+import com.example.sweater.repos.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -70,7 +71,8 @@ public class MainController {
             @Valid Message message,
             BindingResult bindingResult, // список аргументов и сообщения ошибок валидации. Всегда должен идти ПЕРЕД аргументом Model
             Model model,
-            @RequestParam("file") MultipartFile file
+            @RequestParam("file") MultipartFile file,
+            @PageableDefault(sort = { "id" }, direction = Sort.Direction.DESC) Pageable pageable
     ) throws IOException {
 
         message.setAuthor(user);
@@ -87,9 +89,9 @@ public class MainController {
             messageRepo.save(message);
         }
 
-        Iterable<Message> messages = messageRepo.findAll();
-
-        model.addAttribute("messages", messages);
+        model.addAttribute("url", "/main");
+        Page<Message> page = messageRepo.findAll(pageable);
+        model.addAttribute("page", page);
 
         return "main";
     }
@@ -118,8 +120,10 @@ public class MainController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable User user,
             Model model,
-            @RequestParam(required = false) Message message
+            @RequestParam(required = false) Message message,
+            @PageableDefault(sort = {"id"}, direction = Sort.Direction.DESC) Pageable pageble
     ) {
+        Page<Message> page = messageRepo.findByAuthor(user, pageble);
         Set<Message> messages = user.getMessages();
 
         model.addAttribute("userChannel", user);
@@ -129,6 +133,8 @@ public class MainController {
         model.addAttribute("messages", messages);
         model.addAttribute("message", message);
         model.addAttribute("isCurrentUser", currentUser.equals(user));
+        model.addAttribute("url", "/user-messages/" + user.getId());
+        model.addAttribute("page", page);
 
         return "UserMessages";
     }
@@ -142,6 +148,7 @@ public class MainController {
             @RequestParam("tag") String tag,
             @RequestParam("file") MultipartFile file
     ) throws IOException {
+        if (message == null) message = new Message(text, tag, currentUser);
         if (message.getAuthor().equals(currentUser)) {
             if (!StringUtils.isEmpty(text)) {
                 message.setText(text);
