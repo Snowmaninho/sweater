@@ -28,6 +28,10 @@ public class MessageService {
     }
 
     public Page<MessageDto> messageListForUser(Pageable pageable, User currentUser, User author) {
-        return messageRepo.findByUser(pageable, author, currentUser);
+        if (currentUser.equals(author)) {
+            return messageRepo.findByUser(pageable, author);
+        } else {
+            return messageRepo.findByUser(pageable, currentUser, author);
+        }
     }
 }
